@@ -1,0 +1,242 @@
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'supabase_config.dart';
+
+class DetailOverviewScreen extends StatefulWidget {
+  final Map<String, dynamic> detailData;
+
+  const DetailOverviewScreen({super.key, required this.detailData});
+
+  @override
+  State<DetailOverviewScreen> createState() => _DetailOverviewScreenState();
+}
+
+class _DetailOverviewScreenState extends State<DetailOverviewScreen> {
+  late String _detailType;
+  late String _detailstatus;
+  late DateTime _timestamp;
+  late String _reason;
+  late String _newDetail;
+  late String _oldDetail;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _detailType = widget.detailData["detailtype"] ?? "Unknown";
+    _detailstatus = widget.detailData["detailstatus"] ?? "Unknown";
+    _reason = widget.detailData["comment"] ?? "";
+    _newDetail = widget.detailData["newdetail"] ?? "—";
+    _oldDetail = widget.detailData["olddetail"] ?? "—";
+
+    try {
+      final raw = widget.detailData["timestamp"]?.toString();
+
+      // Null or empty → fallback
+      if (raw == null || raw.trim().isEmpty) {
+        _timestamp = DateTime.now();
+        return;
+      }
+
+      // Normalize common formats
+      String fixed = raw
+          .replaceAll('/', '-') // 2025/11/26 → 2025-11-26
+          .replaceAll(' ', 'T'); // "2025-11-26 10:00" → "2025-11-26T10:00"
+
+      // If missing seconds: add :00
+      if (RegExp(r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$').hasMatch(fixed)) {
+        fixed += ':00';
+      }
+
+      // If timestamp has NO timezone → treat it as UTC from Supabase
+      // (supabase returns raw timestamps without timezone!)
+      if (!fixed.contains('Z') && !fixed.contains('+')) {
+        _timestamp = DateTime.parse(fixed).toUtc().toLocal();
+      } else {
+        _timestamp = DateTime.parse(fixed).toLocal();
+      }
+    } catch (e) {
+      debugPrint("Timestamp parse error: $e");
+      _timestamp = DateTime.now();
+    }
+  }
+
+  void _cancelRequest() {
+    if (_detailstatus != 'Pending') return;
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Cancel Detail Request'),
+        content: const Text(
+          'Are you sure you want to cancel this detail request?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              'No',
+              style: TextStyle(color: Color.fromRGBO(39, 55, 110, 1.0)),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              try {
+                await SupabaseConfig.client
+                    .from('detailrequest')
+                    .update({'detailstatus': 'Cancelled'})
+                    .eq(
+                      'detailrequestid',
+                      widget.detailData['detailrequestid'],
+                    );
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Detail request cancelled successfully!'),
+                  ),
+                );
+
+                Navigator.pop(context, true);
+              } catch (e) {
+                debugPrint('Error cancelling detail request: $e');
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Error cancelling request: $e')),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color.fromRGBO(161, 35, 35, 1.0),
+            ),
+            child: const Text('Yes', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatDate(DateTime date) {
+    return DateFormat('MMM d, yyyy – hh:mm a').format(date);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        title: const Text(
+          'Detail Request',
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.w600),
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.pop(context),
+        ),
+        actions: [
+          Container(
+            margin: const EdgeInsets.only(right: 16, top: 10, bottom: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: _detailstatus == 'Approved'
+                  ? const Color.fromRGBO(39, 55, 110, 1.0)
+                  : _detailstatus == 'Rejected' || _detailstatus == 'Cancelled'
+                  ? const Color.fromRGBO(161, 35, 35, 1.0)
+                  : Colors.grey.shade400,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              _detailstatus,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Type of Detail',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            _buildBox(_detailType),
+            const SizedBox(height: 16),
+
+            const Text(
+              'Old Detail',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            _buildBox(_oldDetail),
+            const SizedBox(height: 16),
+
+            // --- DETAIL CHANGE ---
+            const Text(
+              'New Detail',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            _buildBox(_newDetail),
+            const SizedBox(height: 16),
+
+            // --- DATE SUBMITTED ---
+            const Text(
+              'Date Submitted',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            _buildBox(_formatDate(_timestamp)),
+            const SizedBox(height: 16),
+
+            // --- REASON ---
+            const Text('Reason', style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            _buildBox(_reason),
+            const SizedBox(height: 24),
+
+            // --- CANCEL BUTTON ---
+            ElevatedButton(
+              onPressed: _detailstatus == 'Pending' ? _cancelRequest : null,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _detailstatus == 'Pending'
+                    ? const Color.fromRGBO(161, 35, 35, 1.0)
+                    : Colors.grey.shade300,
+                minimumSize: const Size.fromHeight(50),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(25),
+                ),
+              ),
+              child: const Text(
+                'Cancel Request',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBox(String text) {
+    return Container(
+      width: double.infinity, // ← makes all boxes same width
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: Colors.black),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(fontWeight: FontWeight.w600),
+        overflow: TextOverflow.visible,
+        softWrap: false, // ← prevents wrapping
+      ),
+    );
+  }
+}
