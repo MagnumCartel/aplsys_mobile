@@ -33,24 +33,17 @@ class _DetailNotificationScreenState extends State<DetailNotificationScreen> {
     try {
       final raw = widget.detailData["timestamp"]?.toString();
 
-      // Null or empty → fallback
       if (raw == null || raw.trim().isEmpty) {
         _timestamp = DateTime.now();
         return;
       }
 
-      // Normalize common formats
-      String fixed = raw
-          .replaceAll('/', '-') // 2025/11/26 → 2025-11-26
-          .replaceAll(' ', 'T'); // "2025-11-26 10:00" → "2025-11-26T10:00"
+      String fixed = raw.replaceAll('/', '-').replaceAll(' ', 'T');
 
-      // If missing seconds: add :00
       if (RegExp(r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$').hasMatch(fixed)) {
         fixed += ':00';
       }
 
-      // If timestamp has NO timezone → treat it as UTC from Supabase
-      // (supabase returns raw timestamps without timezone!)
       if (!fixed.contains('Z') && !fixed.contains('+')) {
         _timestamp = DateTime.parse(fixed).toUtc().toLocal();
       } else {
@@ -84,9 +77,7 @@ class _DetailNotificationScreenState extends State<DetailNotificationScreen> {
               try {
                 await SupabaseConfig.client
                     .from('detailrequest')
-                    .update({
-                      'is_read': true,
-                    }) // or delete notif table if exists
+                    .update({'is_read': true})
                     .eq(
                       'detailrequestid',
                       widget.detailData['detailrequestid'],
@@ -161,7 +152,6 @@ class _DetailNotificationScreenState extends State<DetailNotificationScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // MESSAGE
             Text(
               "Your Detail Request of $_detailType has been $_detailstatus.",
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
@@ -185,7 +175,6 @@ class _DetailNotificationScreenState extends State<DetailNotificationScreen> {
             _buildBox(_oldDetail),
             const SizedBox(height: 16),
 
-            // --- DETAIL CHANGE ---
             const Text(
               'New Detail',
               style: TextStyle(fontWeight: FontWeight.bold),
@@ -194,7 +183,6 @@ class _DetailNotificationScreenState extends State<DetailNotificationScreen> {
             _buildBox(_newDetail),
             const SizedBox(height: 16),
 
-            // --- DATE SUBMITTED ---
             const Text(
               'Date Submitted',
               style: TextStyle(fontWeight: FontWeight.bold),
@@ -203,13 +191,11 @@ class _DetailNotificationScreenState extends State<DetailNotificationScreen> {
             _buildBox(_formatDate(_timestamp)),
             const SizedBox(height: 16),
 
-            // --- REASON ---
             const Text('Reason', style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             _buildBox(_reason),
             const SizedBox(height: 24),
 
-            // DELETE BUTTON
             ElevatedButton(
               onPressed: _deleteNotification,
               style: ElevatedButton.styleFrom(
@@ -232,7 +218,7 @@ class _DetailNotificationScreenState extends State<DetailNotificationScreen> {
 
   Widget _buildBox(String text) {
     return Container(
-      width: double.infinity, // ← makes all boxes same width
+      width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -243,7 +229,7 @@ class _DetailNotificationScreenState extends State<DetailNotificationScreen> {
         text,
         style: const TextStyle(fontWeight: FontWeight.w600),
         overflow: TextOverflow.visible,
-        softWrap: false, // ← prevents wrapping
+        softWrap: false,
       ),
     );
   }

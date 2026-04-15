@@ -32,7 +32,6 @@ class _LeaveNotificationScreenState extends State<LeaveNotificationScreen> {
     _isPaid = widget.leaveData["is_paid"] == true;
     _ifOther = widget.leaveData["if_other"] ?? "";
 
-    // Parse dates safely
     try {
       _startDate = DateTime.parse(widget.leaveData["start_date"]);
       _endDate = DateTime.parse(widget.leaveData["end_date"]);
@@ -79,9 +78,7 @@ class _LeaveNotificationScreenState extends State<LeaveNotificationScreen> {
               try {
                 await SupabaseConfig.client
                     .from('leave')
-                    .update({
-                      'is_read': true,
-                    }) // or delete notif table if exists
+                    .update({'is_read': true})
                     .eq('leaveid', widget.leaveData['leaveid']);
 
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -151,7 +148,6 @@ class _LeaveNotificationScreenState extends State<LeaveNotificationScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // MESSAGE
             Text(
               "Your Leave Request from ${_formatDate(_startDate)} to ${_formatDate(_endDate)} has been $_status.",
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
@@ -242,7 +238,7 @@ class _LeaveNotificationScreenState extends State<LeaveNotificationScreen> {
 
             const SizedBox(height: 30),
 
-            // DELETE BUTTON
+            // DELETE
             ElevatedButton(
               onPressed: _deleteNotification,
               style: ElevatedButton.styleFrom(

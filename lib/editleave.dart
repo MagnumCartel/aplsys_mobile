@@ -191,7 +191,7 @@ class _EditLeaveScreenState extends State<EditLeaveScreen> {
               const SizedBox(height: 16),
             ],
 
-            // --- DATE RANGE ---
+            // --- DATE ---
             const Text('From:', style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             Container(

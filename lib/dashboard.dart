@@ -66,11 +66,9 @@ class _DashboardPageState extends State<DashboardPage> {
           .select()
           .eq('employeeid', employeeId);
 
-      // 🔽 ASSIGN FIRST
       final leaves = List<Map<String, dynamic>>.from(leaveResponse);
       final details = List<Map<String, dynamic>>.from(detailResponse);
 
-      // 🔽 SORT AFTER FETCH
       leaves.sort((a, b) {
         DateTime? parseDate(dynamic d) {
           if (d == null) return null;
@@ -114,7 +112,6 @@ class _DashboardPageState extends State<DashboardPage> {
         return bDate.compareTo(aDate);
       });
 
-      // 🔽 SET STATE LAST
       setState(() {
         leaveRequests = leaves;
         detailRequests = details;
@@ -203,7 +200,6 @@ class _DashboardPageState extends State<DashboardPage> {
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.all(16),
           children: [
-            // Leave Credit
             Card(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),

@@ -27,7 +27,6 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       final supabase = SupabaseConfig.client;
 
-      // Sign in with email/password
       final response = await supabase.auth.signInWithPassword(
         email: email,
         password: password,
@@ -39,7 +38,6 @@ class _LoginScreenState extends State<LoginScreen> {
         throw Exception('Login failed.');
       }
 
-      // Optional: You can still get the employee record if needed
       final employeeResponse = await supabase
           .from('employee')
           .select()

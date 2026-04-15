@@ -6,7 +6,6 @@ import 'detailsrequest.dart';
 import 'supabase_config.dart';
 import 'image.dart';
 
-/// Convert 24-hour time (HH:mm:ss) to 12-hour format (h:mm AM/PM)
 String formatTo12Hour(String time24) {
   final parsed = DateFormat('HH:mm:ss').parse(time24);
   return DateFormat('h:mm a').format(parsed);
@@ -100,7 +99,6 @@ class _ProfilePageState extends State<ProfilePage> {
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.only(bottom: 20),
           children: [
-            // ================= HEADER =================
             Padding(
               padding: const EdgeInsets.all(20),
               child: Row(
@@ -138,7 +136,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.15),
+                                  color: Colors.black.withValues(alpha: 0.15),
                                   blurRadius: 4,
                                 ),
                               ],
@@ -172,7 +170,6 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
             ),
 
-            // ================= SECTIONS =================
             SectionCard(
               title: "Personal Information",
               children: [
@@ -259,8 +256,6 @@ class _ProfilePageState extends State<ProfilePage> {
     return NetworkImage(url);
   }
 }
-
-// ================= REUSABLE WIDGETS =================
 
 class SectionCard extends StatelessWidget {
   final String title;

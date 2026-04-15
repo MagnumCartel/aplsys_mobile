@@ -13,7 +13,7 @@ class NotificationPage extends StatefulWidget {
 
 class AppNotification {
   final int id;
-  final String source; // "leave" or "detail"
+  final String source;
   final String title;
   final String message;
   bool isRead;
@@ -55,7 +55,6 @@ class _NotificationPageState extends State<NotificationPage> {
     final user = SupabaseConfig.client.auth.currentUser;
     if (user == null) return;
 
-    // 1️⃣ Fetch employeeid using user.id
     final empRes = await SupabaseConfig.client
         .from("employee")
         .select("employeeid")
@@ -64,23 +63,20 @@ class _NotificationPageState extends State<NotificationPage> {
 
     final employeeId = empRes["employeeid"];
 
-    // 2️⃣ Fetch leave notifications (ONLY approval/rejection)
     final leaveRes = await SupabaseConfig.client
         .from("leave")
         .select()
         .eq("employeeid", employeeId)
-        .inFilter("status", ["Approved", "Rejected"]); // ← FILTER
+        .inFilter("status", ["Approved", "Rejected"]);
 
-    // 3️⃣ Fetch detail request notifications (ONLY approval/rejection)
     final detailRes = await SupabaseConfig.client
         .from("detailrequest")
         .select()
         .eq("employeeid", employeeId)
-        .inFilter("detailstatus", ["Approved", "Rejected"]); // ← FILTER
+        .inFilter("detailstatus", ["Approved", "Rejected"]);
 
     List<AppNotification> temp = [];
 
-    // Parse Leave
     for (var row in leaveRes) {
       temp.add(
         AppNotification(
@@ -100,7 +96,6 @@ class _NotificationPageState extends State<NotificationPage> {
       );
     }
 
-    // Parse Detail Request
     for (var row in detailRes) {
       temp.add(
         AppNotification(
@@ -136,10 +131,9 @@ class _NotificationPageState extends State<NotificationPage> {
 
   Future<void> markAllAsRead() async {
     for (var n in notifications) {
-      // Mark as read if it's unread
       if (!n.isRead) {
-        n.isRead = true; // update UI immediately
-        setState(() {}); // refresh UI
+        n.isRead = true;
+        setState(() {});
 
         if (n.source == "leave") {
           await SupabaseConfig.client
@@ -269,7 +263,6 @@ class _NotificationPageState extends State<NotificationPage> {
   Widget _buildTile(AppNotification n) {
     return InkWell(
       onTap: () async {
-        // 🔥 1. Mark as read immediately
         if (!n.isRead) {
           n.isRead = true;
           setState(() {});
@@ -287,7 +280,6 @@ class _NotificationPageState extends State<NotificationPage> {
           }
         }
 
-        //  2. Continue your navigation
         if (n.source == "leave") {
           final res = await SupabaseConfig.client
               .from("leave")

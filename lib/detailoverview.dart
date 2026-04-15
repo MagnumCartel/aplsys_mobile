@@ -38,18 +38,12 @@ class _DetailOverviewScreenState extends State<DetailOverviewScreen> {
         return;
       }
 
-      // Normalize common formats
-      String fixed = raw
-          .replaceAll('/', '-') // 2025/11/26 → 2025-11-26
-          .replaceAll(' ', 'T'); // "2025-11-26 10:00" → "2025-11-26T10:00"
+      String fixed = raw.replaceAll('/', '-').replaceAll(' ', 'T');
 
-      // If missing seconds: add :00
       if (RegExp(r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$').hasMatch(fixed)) {
         fixed += ':00';
       }
 
-      // If timestamp has NO timezone → treat it as UTC from Supabase
-      // (supabase returns raw timestamps without timezone!)
       if (!fixed.contains('Z') && !fixed.contains('+')) {
         _timestamp = DateTime.parse(fixed).toUtc().toLocal();
       } else {
@@ -175,7 +169,6 @@ class _DetailOverviewScreenState extends State<DetailOverviewScreen> {
             _buildBox(_oldDetail),
             const SizedBox(height: 16),
 
-            // --- DETAIL CHANGE ---
             const Text(
               'New Detail',
               style: TextStyle(fontWeight: FontWeight.bold),
@@ -184,7 +177,6 @@ class _DetailOverviewScreenState extends State<DetailOverviewScreen> {
             _buildBox(_newDetail),
             const SizedBox(height: 16),
 
-            // --- DATE SUBMITTED ---
             const Text(
               'Date Submitted',
               style: TextStyle(fontWeight: FontWeight.bold),
@@ -193,13 +185,11 @@ class _DetailOverviewScreenState extends State<DetailOverviewScreen> {
             _buildBox(_formatDate(_timestamp)),
             const SizedBox(height: 16),
 
-            // --- REASON ---
             const Text('Reason', style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             _buildBox(_reason),
             const SizedBox(height: 24),
 
-            // --- CANCEL BUTTON ---
             ElevatedButton(
               onPressed: _detailstatus == 'Pending' ? _cancelRequest : null,
               style: ElevatedButton.styleFrom(

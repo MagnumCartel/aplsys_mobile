@@ -110,7 +110,6 @@ class _LeaveRequestFormState extends State<LeaveRequestForm> {
         throw Exception("No logged-in user found.");
       }
 
-      // Fetch employee ID linked to the logged-in user
       final employeeResponse = await SupabaseConfig.client
           .from('employee')
           .select('employeeid')
@@ -119,7 +118,6 @@ class _LeaveRequestFormState extends State<LeaveRequestForm> {
 
       final employeeId = employeeResponse['employeeid'];
 
-      // Insert leave request using dynamic employee ID
       await SupabaseConfig.client.from('leave').insert({
         'employeeid': employeeId,
         'type': _selectedType,
@@ -146,8 +144,8 @@ class _LeaveRequestFormState extends State<LeaveRequestForm> {
             actions: [
               TextButton(
                 onPressed: () {
-                  Navigator.pop(context); // close dialog
-                  Navigator.pop(context, true); // return to previous screen
+                  Navigator.pop(context);
+                  Navigator.pop(context, true);
                 },
                 child: const Text(
                   "OK",
@@ -170,7 +168,6 @@ class _LeaveRequestFormState extends State<LeaveRequestForm> {
     final today = DateTime.now();
     final firstAllowedDay = DateTime(today.year, today.month, today.day);
 
-    // Determine what the calendar should currently focus on
     final focusedDay = _isSelectingStart
         ? (_startDate ?? today)
         : (_endDate ?? _startDate ?? today);

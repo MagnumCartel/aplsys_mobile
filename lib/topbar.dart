@@ -66,15 +66,12 @@ class _LeaveAppState extends State<LeaveApp> {
           ),
           ElevatedButton(
             onPressed: () async {
-              // Close dialog using its own context
               Navigator.pop(dialogContext);
 
-              // Sign out
               await SupabaseConfig.client.auth.signOut();
 
               if (!mounted) return;
 
-              // Navigate using ROOT navigator
               Navigator.of(context).pushAndRemoveUntil(
                 MaterialPageRoute(builder: (_) => const LoginScreen()),
                 (route) => false,

@@ -123,7 +123,7 @@ class _EditLeaveRequestFormState extends State<EditLeaveRequestForm> {
     if (confirmed != true) return;
 
     try {
-      final leaveId = widget.existingData['leaveid']; // assuming column name
+      final leaveId = widget.existingData['leaveid'];
       await SupabaseConfig.client
           .from('leave')
           .update({
@@ -173,7 +173,6 @@ class _EditLeaveRequestFormState extends State<EditLeaveRequestForm> {
     final today = DateTime.now();
     final firstAllowedDay = DateTime(today.year, today.month, today.day);
 
-    // Determine what the calendar should currently focus on
     final focusedDay = _isSelectingStart
         ? (_startDate ?? today)
         : (_endDate ?? _startDate ?? today);

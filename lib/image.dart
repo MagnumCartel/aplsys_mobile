@@ -4,7 +4,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'supabase_config.dart';
 
-/// Pick image and return as Base64 string
 Future<String?> pickImageBase64() async {
   final picker = ImagePicker();
   final image = await picker.pickImage(source: ImageSource.gallery);
@@ -12,8 +11,7 @@ Future<String?> pickImageBase64() async {
   if (image == null) return null;
 
   final bytes = await image.readAsBytes();
-  final ext = image.path.split('.').last; // png or jpg
-
+  final ext = image.path.split('.').last;
   return "data:image/$ext;base64,${base64Encode(bytes)}";
 }
 
@@ -22,11 +20,9 @@ Future<String?> uploadImageToSupabase(
   String base64Image,
 ) async {
   try {
-    // Remove prefix "data:image/png;base64,"
     final cleanedBase64 = base64Image.split(',').last;
     final bytes = base64Decode(cleanedBase64);
 
-    // Detect file extension
     final isPng = base64Image.contains("image/png");
     final fileExt = isPng ? "png" : "jpg";
     final mimeType = isPng ? "image/png" : "image/jpeg";

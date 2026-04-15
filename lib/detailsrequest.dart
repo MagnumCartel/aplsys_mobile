@@ -187,7 +187,6 @@ class _DetailsRequestPageState extends State<DetailsRequestPage> {
       final user = SupabaseConfig.client.auth.currentUser;
       if (user == null) throw Exception("No user is currently logged in.");
 
-      // Get the employee record linked to this user
       final employeeResponse = await SupabaseConfig.client
           .from('employee')
           .select('employeeid')
@@ -201,7 +200,6 @@ class _DetailsRequestPageState extends State<DetailsRequestPage> {
       final employeeId = employeeResponse['employeeid'];
 
       for (var req in _detailRequests) {
-        // Insert into detailrequest table
         await SupabaseConfig.client.from('detailrequest').insert({
           'employeeid': employeeId,
           'detailtype': req['selectedDetail'],
